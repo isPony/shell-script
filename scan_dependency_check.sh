@@ -56,7 +56,8 @@ docker run --rm \
   -v "$DATA_DIR":/usr/share/dependency-check/data \
   $IMAGE \
   --scan /src \
-  --format ALL \
+  # --format ALL \
+  --format HTML \
   --out /report \
   --project "dependency-check-docker-scan" \
   --nvdApiKey "$NVD_API_KEY"
@@ -67,5 +68,5 @@ docker run --rm \
 echo "[INFO] 扫描完成 ✅"
 echo "报告目录：$REPORT_DIR"
 echo " - HTML: dependency-check-report.html"
-echo " - JSON: dependency-check-report.json"
-echo " - XML : dependency-check-report.xml"
+# echo " - JSON: dependency-check-report.json"
+# echo " - XML : dependency-check-report.xml"
