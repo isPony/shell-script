@@ -1,50 +1,71 @@
 #!/bin/bash
 # ------------------------------------------------------------------
-# OWASP Dependency-Check Docker 扫描脚本
+# OWASP Dependency-Check Docker 扫描脚本（已支持 NVD API Key）
+#
 # 扫描目录：~/Documents/docker/dependency-check/src
 # 报告目录：~/Documents/docker/dependency-check/report
 # 缓存目录：~/Documents/docker/dependency-check/data
 # ------------------------------------------------------------------
 
-# 设置宿主机路径
-BASE_DIR=~/Documents/docker/dependency-check
-SRC_DIR=$BASE_DIR/src
-REPORT_DIR=$BASE_DIR/report
-DATA_DIR=$BASE_DIR/data
+set -e
 
-# 创建目录（如果不存在）
-mkdir -p "$SRC_DIR"
-mkdir -p "$REPORT_DIR"
-mkdir -p "$DATA_DIR"
+# =========================
+# 基础配置
+# =========================
+BASE_DIR=~/Documents/docker/dependency-check
+SRC_DIR="$BASE_DIR/src"
+REPORT_DIR="$BASE_DIR/report"
+DATA_DIR="$BASE_DIR/data"
 
 # Docker 镜像
-IMAGE=owasp/dependency-check:latest
+IMAGE="owasp/dependency-check:latest"
 
-# 检查 Docker 镜像是否存在，如果不存在拉取
+# ⚠️ 必填：NVD API Key
+NVD_API_KEY="3c3e4919-86b6-41ec-96ca-73cb8a20aeff"
+
+# =========================
+# 目录准备
+# =========================
+mkdir -p "$SRC_DIR" "$REPORT_DIR" "$DATA_DIR"
+
+# =========================
+# 镜像检查
+# =========================
 if ! docker image inspect $IMAGE >/dev/null 2>&1; then
-    echo "[INFO] 拉取 Docker 镜像 $IMAGE ..."
-    docker pull $IMAGE
+  echo "[INFO] Docker 镜像不存在，正在拉取 $IMAGE ..."
+  docker pull $IMAGE
 fi
 
-# 扫描命令
-echo "[INFO] 开始扫描 JAR / 文件夹..."
+# =========================
+# 更新漏洞库
+# =========================
+echo "[INFO] 更新 NVD 漏洞库（使用 API Key）..."
 docker run --rm \
-    -v "$SRC_DIR":/src \
-    -v "$REPORT_DIR":/report \
-    -v "$DATA_DIR":/usr/share/dependency-check/data \
-    $IMAGE \
-    --updateonly
+  -v "$DATA_DIR":/usr/share/dependency-check/data \
+  $IMAGE \
+  --updateonly \
+  --nvdApiKey "$NVD_API_KEY"
 
+# =========================
+# 执行扫描
+# =========================
+echo "[INFO] 开始扫描 $SRC_DIR ..."
 docker run --rm \
-    -v "$SRC_DIR":/src \
-    -v "$REPORT_DIR":/report \
-    -v "$DATA_DIR":/usr/share/dependency-check/data \
-    $IMAGE \
-    --scan /src \
-    --format ALL \
-    --out /report
+  -v "$SRC_DIR":/src \
+  -v "$REPORT_DIR":/report \
+  -v "$DATA_DIR":/usr/share/dependency-check/data \
+  $IMAGE \
+  --scan /src \
+  --format ALL \
+  --out /report \
+  --project "dependency-check-docker-scan" \
+  --nvdApiKey "$NVD_API_KEY"
 
-echo "[INFO] 扫描完成，报告生成在：$REPORT_DIR"
-echo "  HTML: $REPORT_DIR/dependency-check-report.html"
-echo "  JSON: $REPORT_DIR/dependency-check-report.json"
-echo "  XML:  $REPORT_DIR/dependency-check-report.xml"
+# =========================
+# 完成提示
+# =========================
+echo "[INFO] 扫描完成 ✅"
+echo "报告目录：$REPORT_DIR"
+echo " - HTML: dependency-check-report.html"
+echo " - JSON: dependency-check-report.json"
+echo " - XML : dependency-check-report.xml"
