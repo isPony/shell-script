@@ -16,22 +16,19 @@ else
 fi
 
 # ------------------------------
-# 2. 安装 Docker
+# 2. 安装 Docker（使用 Amazon Linux 2023 推荐方式）
 # ------------------------------
-echo "更新系统并安装 Docker..."
-sudo dnf -y update
+echo "更新系统程序包..."
+sudo yum update -y
 
-# 安装必要工具
-sudo dnf -y install dnf-utils
+echo "安装 Docker..."
+sudo yum install -y docker
 
-# 添加 Docker 官方仓库
-sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+echo "启动 Docker 服务..."
+sudo service docker start
 
-# 安装 Docker CE
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# 启动并设置开机自启
-sudo systemctl enable --now docker
+echo "将 ec2-user 添加到 docker 组..."
+sudo usermod -a -G docker ec2-user
 
 # 验证安装
 docker_version=$(docker --version)
