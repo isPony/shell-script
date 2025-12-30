@@ -37,4 +37,13 @@ sudo systemctl enable --now docker
 docker_version=$(docker --version)
 echo "Docker 已安装: $docker_version"
 
+# ------------------------------
+# 3. 创建 Docker 挂载目录
+# ------------------------------
+DOCKER_MOUNT_DIR="/root/documents/docker"
+echo "创建 Docker 挂载目录: $DOCKER_MOUNT_DIR"
+sudo mkdir -p $DOCKER_MOUNT_DIR
+sudo chown root:root $DOCKER_MOUNT_DIR
+echo "目录创建完成: $DOCKER_MOUNT_DIR"
+
 echo "初始化设置完成！"
